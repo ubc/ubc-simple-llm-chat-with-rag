@@ -34,6 +34,18 @@ spl_autoload_register( function ( $class ) {
 
 // Initialize Plugin
 function ubc_simple_chat_init() {
+	// Check for UBC RAG Plugin Dependency
+	if ( ! class_exists( '\UBC\RAG\API' ) ) {
+		add_action( 'admin_notices', function() {
+			?>
+			<div class="notice notice-error">
+				<p><?php _e( 'UBC Simple LLM Chat with RAG requires the <strong>UBC RAG</strong> plugin to be installed and activated.', 'ubc-simple-llm-chat-with-rag' ); ?></p>
+			</div>
+			<?php
+		} );
+		return;
+	}
+
 	// Initialize Settings
 	\UBC\SimpleChat\Settings::init();
 
