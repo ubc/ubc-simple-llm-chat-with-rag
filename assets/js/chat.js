@@ -59,11 +59,14 @@ document.addEventListener('DOMContentLoaded', function () {
         sortedChatIds.forEach(chatId => {
             const chat = chats[chatId];
             const li = document.createElement('li');
-            li.textContent = chat.title || 'New Chat';
             li.dataset.id = chatId;
             if (chatId === currentChatId) {
                 li.classList.add('active');
             }
+
+            const titleSpan = document.createElement('span');
+            titleSpan.className = 'chat-title';
+            titleSpan.textContent = chat.title || 'New Chat';
 
             const deleteBtn = document.createElement('button');
             deleteBtn.innerHTML = '&times;';
@@ -74,6 +77,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 deleteChat(chatId);
             };
 
+            li.appendChild(titleSpan);
             li.appendChild(deleteBtn);
             li.addEventListener('click', () => selectChat(chatId));
             chatList.appendChild(li);

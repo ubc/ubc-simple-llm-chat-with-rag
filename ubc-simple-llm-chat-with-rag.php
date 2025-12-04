@@ -79,6 +79,9 @@ function ubc_simple_chat_shortcode() {
 				<textarea id="ubc-chat-input" placeholder="Type your message..."></textarea>
 				<button id="ubc-chat-send-btn">Send</button>
 			</div>
+			<div class="ubc-chat-disclaimer">
+				<strong>Important Note:</strong> Language models like the one used here can make mistakes. It is vital that you verify and validate outputs.
+			</div>
 		</div>
 	</div>
 	<?php
