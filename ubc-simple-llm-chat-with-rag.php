@@ -55,14 +55,26 @@ function ubc_simple_chat_init() {
 add_action( 'plugins_loaded', 'ubc_simple_chat_init' );
 
 // Register Shortcode
-function ubc_simple_chat_shortcode() {
+function ubc_simple_chat_shortcode( $atts ) {
+	// Parse shortcode attributes
+	$atts = shortcode_atts( [
+		'restrict_post_types_to' => '', // Comma-separated list of post types, e.g., 'page,post'
+	], $atts, 'ubc_simple_chat' );
+
 	// Enqueue Scripts and Styles
 	wp_enqueue_style( 'ubc-simple-chat-css', UBC_SIMPLE_CHAT_URL . 'assets/css/chat.css', [], '1.0.0' );
 	wp_enqueue_script( 'ubc-simple-chat-js', UBC_SIMPLE_CHAT_URL . 'assets/js/chat.js', [], '1.0.0', true );
 
+	// Process post type restriction
+	$restricted_post_types = [];
+	if ( ! empty( $atts['restrict_post_types_to'] ) ) {
+		$restricted_post_types = array_map( 'trim', explode( ',', $atts['restrict_post_types_to'] ) );
+	}
+
 	wp_localize_script( 'ubc-simple-chat-js', 'ubcSimpleChat', [
 		'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 		'nonce'   => wp_create_nonce( 'ubc_simple_chat_nonce' ),
+		'restrictedPostTypes' => $restricted_post_types,
 	] );
 
 	ob_start();

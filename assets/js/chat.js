@@ -195,6 +195,11 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('chat_id', currentChatId);
         formData.append('nonce', ubcSimpleChat.nonce);
 
+        // Add post type restrictions if configured
+        if (ubcSimpleChat.restrictedPostTypes && ubcSimpleChat.restrictedPostTypes.length > 0) {
+            formData.append('restricted_post_types', JSON.stringify(ubcSimpleChat.restrictedPostTypes));
+        }
+
         fetch(ubcSimpleChat.ajaxUrl, {
             method: 'POST',
             body: formData

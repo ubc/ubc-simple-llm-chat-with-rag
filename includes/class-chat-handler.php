@@ -43,8 +43,17 @@ class Chat_Handler {
 			wp_send_json_error( 'Message cannot be empty' );
 		}
 
+		// Get post type restrictions if provided
+		$restricted_post_types = [];
+		if ( ! empty( $_POST['restricted_post_types'] ) ) {
+			$restricted_post_types = json_decode( stripslashes( $_POST['restricted_post_types'] ), true );
+			if ( ! is_array( $restricted_post_types ) ) {
+				$restricted_post_types = [];
+			}
+		}
+
 		// 1. Search RAG
-		$rag_context = self::get_rag_context( $message );
+		$rag_context = self::get_rag_context( $message, $restricted_post_types );
 		file_put_contents( WP_CONTENT_DIR . '/rag-debug.log', "RAG Context: " . print_r( $rag_context, true ) . "\n", FILE_APPEND );
 
 		// 2. Construct Augmented Message
@@ -118,9 +127,10 @@ class Chat_Handler {
 	 * Retrieves relevant context from the RAG system.
 	 *
 	 * @param string $query The user's search query.
+	 * @param array  $restricted_post_types Array of post types to restrict search to (e.g., ['page', 'post']).
 	 * @return array An array containing the combined context text and a list of sources.
 	 */
-	private static function get_rag_context( $query ) {
+	private static function get_rag_context( $query, $restricted_post_types = [] ) {
 		if ( ! class_exists( '\UBC\RAG\API' ) ) {
 			file_put_contents( WP_CONTENT_DIR . '/rag-debug.log', "RAG API not found\n", FILE_APPEND );
 			return [ 'text' => '', 'sources' => [] ];
@@ -129,7 +139,20 @@ class Chat_Handler {
 		$options = get_option( 'ubc_simple_chat_options' );
 		$min_score = isset( $options['min_sim_score'] ) ? floatval( $options['min_sim_score'] ) : 0.0;
 
-		$results = \UBC\RAG\API::search( $query, 5 );
+		// Build filter array for RAG API
+		// The UBC RAG Plugin now supports both single values and arrays:
+		// Single value: ['content_type' => 'page']
+		// Multiple values: ['content_type' => ['page', 'post']] (uses Qdrant's 'any' operator or SQL IN clause)
+		$filter = [];
+		if ( ! empty( $restricted_post_types ) ) {
+			if ( count( $restricted_post_types ) === 1 ) {
+				$filter['content_type'] = $restricted_post_types[0];
+			} else {
+				$filter['content_type'] = $restricted_post_types;
+			}
+		}
+
+		$results = \UBC\RAG\API::search( $query, 5, $filter );
 		
 		$context_text = "";
 		$sources = [];
